@@ -3,9 +3,11 @@ services:
     name: TaskTrackerApp
     runtime: dotnet
     runtimeVersion: 10.0
-    buildCommand: cd TaskTrackerApp && dotnet publish -c Release
-    startCommand: cd TaskTrackerApp && dotnet bin/Release/net10.0/TaskTrackerApp.dll
+    buildCommand: dotnet publish TaskTrackerApp -c Release -o out
+    startCommand: dotnet out/TaskTrackerApp.dll
     envVars:
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:10000
       - key: ASPNETCORE_ENVIRONMENT
         value: production
       - key: ASPNETCORE_URLS
