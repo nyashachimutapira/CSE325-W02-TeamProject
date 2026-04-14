@@ -1,0 +1,102 @@
+@page "/tasks/edit/{id:int}"
+@rendermode InteractiveServer
+@using TaskTrackerApp.Data
+@using TaskTrackerApp.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject TaskService TaskService
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavigationManager
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<PageTitle>Edit Task</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+                <div class="card-header bg-secondary text-white border-0 py-3">
+                    <h4 class="mb-0 fw-bold">Edit Task</h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (task == null)
+                    {
+                        <div class="text-center my-4">
+                            <div class="spinner-border text-secondary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="task" OnValidSubmit="HandleValidSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="text-danger" />
+
+                            <div class="mb-3">
+                                <label for="title" class="form-label fw-bold">Title</label>
+                                <InputText id="title" class="form-control form-control-lg" @bind-Value="task.Title" style="border-radius: 12px;" />
+                                <ValidationMessage For="@(() => task.Title)" class="text-danger" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label fw-bold">Description</label>
+                                <InputTextArea id="description" class="form-control" @bind-Value="task.Description" rows="4" style="border-radius: 12px;"></InputTextArea>
+                                <ValidationMessage For="@(() => task.Description)" class="text-danger" />
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="dueDate" class="form-label fw-bold">Due Date (Optional)</label>
+                                <InputDate id="dueDate" class="form-control" @bind-Value="task.DueDate" style="border-radius: 12px;" />
+                                <ValidationMessage For="@(() => task.DueDate)" class="text-danger" />
+                            </div>
+
+                            <div class="mb-4 form-check">
+                                <InputCheckbox id="isCompleted" class="form-check-input" @bind-Value="task.IsCompleted" />
+                                <label class="form-check-label fw-bold" for="isCompleted">Mark as Completed</label>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm" style="border-radius: 15px;">Update Task</button>
+                                <a href="/tasks" class="btn btn-outline-secondary btn-lg" style="border-radius: 15px;">Cancel</a>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private TaskItem? task;
+    private string userId = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            task = await TaskService.GetTaskByIdAsync(Id, userId);
+            if (task == null)
+            {
+                NavigationManager.NavigateTo("/tasks");
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (task != null)
+        {
+            await TaskService.UpdateTaskAsync(task);
+            NavigationManager.NavigateTo("/tasks");
+        }
+    }
+}
