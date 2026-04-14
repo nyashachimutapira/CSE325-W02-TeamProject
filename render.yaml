@@ -2,9 +2,9 @@ services:
   - type: web
     name: TaskTrackerApp
     runtime: dotnet
-    runtimeVersion: 8.0
-    buildCommand: dotnet publish -c Release -o out
-    startCommand: dotnet /app/out/TaskTrackerApp.dll
+    runtimeVersion: 10.0
+    buildCommand: cd TaskTrackerApp && dotnet publish -c Release
+    startCommand: cd TaskTrackerApp && dotnet bin/Release/net10.0/TaskTrackerApp.dll
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: production
